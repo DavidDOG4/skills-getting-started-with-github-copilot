@@ -46,5 +46,77 @@
     </footer>
 
     <script src="app.js"></script>
+    <script>
+      // Enhance activity card rendering to include participants
+      document.addEventListener("DOMContentLoaded", async () => {
+        const activitiesList = document.getElementById("activities-list");
+        const activitySelect = document.getElementById("activity");
+
+        // Fetch activities from API
+        const res = await fetch("/activities");
+        const activities = await res.json();
+
+        // Clear loading text
+        activitiesList.innerHTML = "";
+
+        Object.entries(activities).forEach(([name, info]) => {
+          // Create card
+          const card = document.createElement("div");
+          card.className = "activity-card";
+
+          // Title
+          const title = document.createElement("h4");
+          title.textContent = name;
+          card.appendChild(title);
+
+          // Description
+          const desc = document.createElement("p");
+          desc.textContent = info.description;
+          card.appendChild(desc);
+
+          // Schedule
+          const sched = document.createElement("p");
+          sched.innerHTML = `<strong>Schedule:</strong> ${info.schedule}`;
+          card.appendChild(sched);
+
+          // Max participants
+          const max = document.createElement("p");
+          max.innerHTML = `<strong>Max Participants:</strong> ${info.max_participants}`;
+          card.appendChild(max);
+
+          // Participants section
+          const partSection = document.createElement("div");
+          partSection.className = "participants-section";
+          const partTitle = document.createElement("p");
+          partTitle.innerHTML = `<strong>Participants:</strong>`;
+          partSection.appendChild(partTitle);
+
+          if (info.participants && info.participants.length > 0) {
+            const ul = document.createElement("ul");
+            ul.className = "participants-list";
+            info.participants.forEach(email => {
+              const li = document.createElement("li");
+              li.textContent = email;
+              ul.appendChild(li);
+            });
+            partSection.appendChild(ul);
+          } else {
+            const none = document.createElement("span");
+            none.className = "no-participants";
+            none.textContent = "No participants yet.";
+            partSection.appendChild(none);
+          }
+          card.appendChild(partSection);
+
+          activitiesList.appendChild(card);
+
+          // Add to select
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          activitySelect.appendChild(opt);
+        });
+      });
+    </script>
   </body>
 </html>
