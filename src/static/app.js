@@ -1,45 +1,73 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const activitiesList = document.getElementById("activities-list");
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
-  // Function to fetch activities from API
-  async function fetchActivities() {
-    try {
-      const response = await fetch("/activities");
-      const activities = await response.json();
+  // Fetch activities from API
+  const res = await fetch("/activities");
+  const activities = await res.json();
 
-      // Clear loading message
-      activitiesList.innerHTML = "";
+  // Clear loading text
+  activitiesList.innerHTML = "";
 
-      // Populate activities list
-      Object.entries(activities).forEach(([name, details]) => {
-        const activityCard = document.createElement("div");
-        activityCard.className = "activity-card";
+  Object.entries(activities).forEach(([name, info]) => {
+    // Create card
+    const card = document.createElement("div");
+    card.className = "activity-card";
 
-        const spotsLeft = details.max_participants - details.participants.length;
+    // Title
+    const title = document.createElement("h4");
+    title.textContent = name;
+    card.appendChild(title);
 
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-        `;
+    // Description
+    const desc = document.createElement("p");
+    desc.textContent = info.description;
+    card.appendChild(desc);
 
-        activitiesList.appendChild(activityCard);
+    // Schedule
+    const sched = document.createElement("p");
+    sched.innerHTML = `<strong>Schedule:</strong> ${info.schedule}`;
+    card.appendChild(sched);
 
-        // Add option to select dropdown
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        activitySelect.appendChild(option);
+    // Max participants
+    const max = document.createElement("p");
+    max.innerHTML = `<strong>Max Participants:</strong> ${info.max_participants}`;
+    card.appendChild(max);
+
+    // Participants section
+    const partSection = document.createElement("div");
+    partSection.className = "participants-section";
+    const partTitle = document.createElement("p");
+    partTitle.innerHTML = `<strong>Participants:</strong>`;
+    partSection.appendChild(partTitle);
+
+    if (info.participants && info.participants.length > 0) {
+      const ul = document.createElement("ul");
+      ul.className = "participants-list";
+      info.participants.forEach(email => {
+        const li = document.createElement("li");
+        li.textContent = email;
+        ul.appendChild(li);
       });
-    } catch (error) {
-      activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
-      console.error("Error fetching activities:", error);
+      partSection.appendChild(ul);
+    } else {
+      const none = document.createElement("span");
+      none.className = "no-participants";
+      none.textContent = "No participants yet.";
+      partSection.appendChild(none);
     }
-  }
+    card.appendChild(partSection);
+
+    activitiesList.appendChild(card);
+
+    // Add to select
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    activitySelect.appendChild(opt);
+  });
 
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
@@ -80,7 +108,4 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error signing up:", error);
     }
   });
-
-  // Initialize app
-  fetchActivities();
 });
